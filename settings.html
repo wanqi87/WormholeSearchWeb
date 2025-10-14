@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="设置和管理">
+    <meta name="theme-color" content="#6366f1">
+    <title>设置 - 虫洞搜索</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">虫洞搜索</h1>
+            <p class="subtitle">管理您的偏好设置</p>
+        </header>
+
+        <main class="main-content history-content">
+            <!-- 统计信息 -->
+            <div class="settings-section">
+                <h2 class="settings-title">📊 使用统计</h2>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalSearches">-</div>
+                        <div class="stat-label">总搜索次数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalPlatforms">36</div>
+                        <div class="stat-label">支持平台</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCategories">6</div>
+                        <div class="stat-label">平台分类</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 最常使用 -->
+            <div class="settings-section">
+                <h2 class="settings-title">⭐ 最常使用</h2>
+                <div class="top-platforms" id="topPlatforms">
+                    <p class="empty-hint">暂无数据</p>
+                </div>
+            </div>
+
+            <!-- 数据管理 -->
+            <div class="settings-section">
+                <h2 class="settings-title">💾 数据管理</h2>
+                <div class="settings-buttons">
+                    <button class="settings-btn" id="exportDataBtn">
+                        📤 导出数据
+                    </button>
+                    <button class="settings-btn" id="importDataBtn">
+                        📥 导入数据
+                    </button>
+                    <button class="settings-btn danger" id="clearDataBtn">
+                        🗑️ 清除所有数据
+                    </button>
+                </div>
+                <input type="file" id="importFileInput" accept=".json" style="display: none;">
+            </div>
+
+            <!-- 关于 -->
+            <div class="settings-section">
+                <h2 class="settings-title">ℹ️ 关于</h2>
+                <div class="about-info">
+                    <p><strong>虫洞搜索</strong></p>
+                    <p>版本：v2.0.0</p>
+                    <p>一站式搜索聚合工具，支持30+平台快速搜索</p>
+                    <p style="margin-top: 1rem; color: var(--text-tertiary); font-size: 0.875rem;">
+                        覆盖社交媒体、视频平台、AI工具、购物平台、新闻资讯、工具搜索等多个领域
+                    </p>
+                    <div class="about-links" style="margin-top: 1rem;">
+                        <a href="https://github.com" class="about-link" target="_blank">GitHub</a>
+                        <span style="color: var(--text-tertiary);">·</span>
+                        <a href="#" class="about-link" onclick="alert('反馈功能开发中'); return false;">反馈</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <span class="nav-label">搜索</span>
+            </a>
+            <a href="history.html" class="nav-item">
+                <span class="nav-label">历史</span>
+            </a>
+            <a href="settings.html" class="nav-item active">
+                <span class="nav-label">设置</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Toast通知 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- 引入配置文件 -->
+    <script src="js/config/categories.js"></script>
+    <script src="js/config/platforms.js"></script>
+    <!-- 引入设置管理逻辑 -->
+    <script src="js/settings.js"></script>
+</body>
+</html>
+

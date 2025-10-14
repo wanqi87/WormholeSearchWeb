@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="搜索历史记录">
+    <meta name="theme-color" content="#6366f1">
+    <title>搜索历史 - 虫洞搜索</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">虫洞搜索</h1>
+            <p class="subtitle">查看最近的搜索记录</p>
+            <button id="clearAllBtn" class="clear-all-btn">清空所有</button>
+        </header>
+
+        <main class="main-content history-content">
+            <!-- 历史记录列表 -->
+            <div class="history-list" id="historyList">
+                <!-- 动态生成历史记录 -->
+            </div>
+
+            <!-- 空状态 -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📭</div>
+                <p class="empty-text">还没有搜索记录</p>
+                <a href="index.html" class="empty-link">开始搜索</a>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <span class="nav-label">搜索</span>
+            </a>
+            <a href="history.html" class="nav-item active">
+                <span class="nav-label">历史</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <span class="nav-label">设置</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Toast通知 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- 引入配置文件 -->
+    <script src="js/config/categories.js"></script>
+    <script src="js/config/platforms.js"></script>
+    <!-- 引入历史记录管理逻辑 -->
+    <script src="js/history.js"></script>
+</body>
+</html>

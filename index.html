@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="一站式搜索聚合工具，支持55+平台快速搜索，覆盖社交、视频、购物、新闻等">
+    <meta name="theme-color" content="#6366f1">
+    <title>虫洞搜索 - 一键直达55+平台</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <!-- xAI 风格粒子效果容器 -->
+            <div class="particles" id="particles"></div>
+            <h1 class="title">虫洞搜索</h1>
+            <p class="subtitle">一键直达55+平台搜索结果</p>
+        </header>
+
+        <main class="main-content">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="输入搜索内容..."
+                    autocomplete="off"
+                >
+                <button id="clearBtn" class="clear-btn" title="清空">×</button>
+            </div>
+
+            <!-- 常用平台组件 -->
+            <div class="frequent-platforms" id="frequentPlatforms" style="display: none;">
+                <span class="frequent-label">常用</span>
+                <div class="frequent-icons" id="frequentIcons">
+                    <!-- 动态生成SVG图标 -->
+                </div>
+            </div>
+
+            <!-- 分类标签栏 -->
+            <div class="category-container">
+                <div class="category-tabs" id="categoryTabs">
+                    <!-- 动态生成分类标签 -->
+                </div>
+            </div>
+
+            <!-- 平台卡片网格 -->
+            <div class="platforms-grid" id="platformsGrid">
+                <!-- 动态生成平台卡片 -->
+            </div>
+
+            <div class="tip-text" id="tipText">
+                💡 输入关键词后，点击平台图标即可跳转搜索
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item active">
+                <span class="nav-label">搜索</span>
+            </a>
+            <a href="history.html" class="nav-item">
+                <span class="nav-label">历史</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <span class="nav-label">设置</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Toast通知 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- 引入配置文件 -->
+    <script src="js/config/categories.js"></script>
+    <script src="js/config/platforms.js"></script>
+    <!-- 引入主应用逻辑 -->
+    <script src="js/app.js"></script>
+</body>
+</html>
