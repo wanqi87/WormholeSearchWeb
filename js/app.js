@@ -76,6 +76,21 @@ function loadSettings() {
         if (settings) {
             const parsed = JSON.parse(settings);
             currentCategory = parsed.lastCategory || 'featured';
+            
+            // 恢复上次的搜索框内容
+            if (parsed.lastSearchQuery) {
+                searchInput.value = parsed.lastSearchQuery;
+                currentQuery = parsed.lastSearchQuery;
+                
+                // 显示清空按钮
+                clearBtn.classList.add('show');
+                
+                // 显示常用平台（如果有数据）
+                renderFrequentPlatforms();
+                
+                // 更新平台卡片状态
+                updatePlatformCards(currentQuery);
+            }
         }
     } catch (error) {
         console.error('加载设置失败:', error);
@@ -87,6 +102,7 @@ function saveSettings() {
     try {
         const settings = {
             lastCategory: currentCategory,
+            lastSearchQuery: currentQuery,
             timestamp: Date.now()
         };
         localStorage.setItem('settings', JSON.stringify(settings));
@@ -281,6 +297,9 @@ function handleSearchInput(e) {
     
     // 更新平台卡片状态
     updatePlatformCards(currentQuery);
+    
+    // 实时保存搜索框内容到 localStorage
+    saveSettings();
 }
 
 function handleKeyPress(e) {
@@ -321,6 +340,9 @@ function clearSearchInput() {
     frequentPlatforms.style.display = 'none';
     updatePlatformCards('');
     searchInput.focus();
+    
+    // 清空时也保存设置
+    saveSettings();
 }
 
 function updatePlatformCards(query) {
