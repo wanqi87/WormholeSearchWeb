@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="wormholeGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:1" />
+    </radialGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="30%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.9" />
+      <stop offset="50%" style="stop-color:#c7d2fe;stop-opacity:0.5" />
+      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- 背景圆 -->
+  <circle cx="50" cy="50" r="48" fill="url(#wormholeGradient)"/>
+  
+  <!-- 虫洞旋涡效果 -->
+  <circle cx="50" cy="50" r="40" fill="none" stroke="#8b5cf6" stroke-width="1" opacity="0.3"/>
+  <circle cx="50" cy="50" r="32" fill="none" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="50" cy="50" r="24" fill="none" stroke="#c7d2fe" stroke-width="2" opacity="0.5"/>
+  <circle cx="50" cy="50" r="16" fill="none" stroke="#e0e7ff" stroke-width="2.5" opacity="0.6"/>
+  
+  <!-- 中心光晕 -->
+  <circle cx="50" cy="50" r="12" fill="url(#centerGlow)"/>
+  
+  <!-- 星星点缀 -->
+  <circle cx="25" cy="25" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="75" cy="30" r="1" fill="#ffffff" opacity="0.7"/>
+  <circle cx="70" cy="70" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="30" cy="75" r="1" fill="#ffffff" opacity="0.6"/>
+</svg>
+

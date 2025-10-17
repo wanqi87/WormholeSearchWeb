@@ -6,11 +6,15 @@ const totalSearches = document.getElementById('totalSearches');
 const totalPlatforms = document.getElementById('totalPlatforms');
 const totalCategories = document.getElementById('totalCategories');
 const topPlatforms = document.getElementById('topPlatforms');
+const showGuideBtn = document.getElementById('showGuideBtn');
+const showFeedbackBtn = document.getElementById('showFeedbackBtn');
 const exportDataBtn = document.getElementById('exportDataBtn');
 const importDataBtn = document.getElementById('importDataBtn');
 const clearDataBtn = document.getElementById('clearDataBtn');
 const importFileInput = document.getElementById('importFileInput');
 const toast = document.getElementById('toast');
+const feedbackModal = document.getElementById('feedbackModal');
+const modalClose = document.getElementById('modalClose');
 
 // ==================== 初始化 ====================
 function init() {
@@ -71,6 +75,14 @@ function renderTopPlatforms(stats) {
 
 // ==================== 事件绑定 ====================
 function bindEvents() {
+    if (showGuideBtn) {
+        showGuideBtn.addEventListener('click', handleShowGuide);
+    }
+    
+    if (showFeedbackBtn) {
+        showFeedbackBtn.addEventListener('click', handleShowFeedback);
+    }
+    
     if (exportDataBtn) {
         exportDataBtn.addEventListener('click', handleExportData);
     }
@@ -87,6 +99,44 @@ function bindEvents() {
     
     if (clearDataBtn) {
         clearDataBtn.addEventListener('click', handleClearData);
+    }
+    
+    // 模态框关闭事件
+    if (modalClose) {
+        modalClose.addEventListener('click', closeFeedbackModal);
+    }
+    
+    if (feedbackModal) {
+        // 点击模态框背景关闭
+        feedbackModal.addEventListener('click', (e) => {
+            if (e.target === feedbackModal) {
+                closeFeedbackModal();
+            }
+        });
+    }
+}
+
+// ==================== 查看新手引导 ====================
+function handleShowGuide() {
+    // 跳转到首页并显示欢迎卡片
+    window.location.href = 'index.html?showWelcome=true';
+}
+
+// ==================== 显示反馈二维码 ====================
+function handleShowFeedback() {
+    if (feedbackModal) {
+        feedbackModal.classList.add('show');
+        // 防止背景滚动
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// ==================== 关闭反馈模态框 ====================
+function closeFeedbackModal() {
+    if (feedbackModal) {
+        feedbackModal.classList.remove('show');
+        // 恢复背景滚动
+        document.body.style.overflow = '';
     }
 }
 
@@ -173,8 +223,10 @@ function handleImportData(e) {
 // ==================== 清除所有数据 ====================
 function handleClearData() {
     const history = getSearchHistory();
+    const stats = getPlatformStats();
+    const hasData = history.length > 0 || Object.keys(stats).length > 0;
     
-    if (history.length === 0) {
+    if (!hasData) {
         showToast('⚠️ 没有数据可清除');
         return;
     }
@@ -184,13 +236,19 @@ function handleClearData() {
     }
     
     try {
+        // 清除所有存储的数据
         localStorage.removeItem('searchHistory');
         localStorage.removeItem('platformStats');
         localStorage.removeItem('settings');
+        localStorage.removeItem('hasVisited');
         
         showToast('✅ 所有数据已清除');
         
-        // 重新加载统计
+        // 立即刷新UI
+        totalSearches.textContent = '0';
+        topPlatforms.innerHTML = '<p class="empty-hint">暂无数据</p>';
+        
+        // 延迟重新加载统计以确保UI更新
         setTimeout(() => {
             loadStatistics();
         }, 500);

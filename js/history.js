@@ -223,4 +223,9 @@ function showToast(message, duration = 2000) {
 }
 
 // ==================== 启动应用 ====================
-init();
+// 确保 DOM 完全加载后再初始化
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}

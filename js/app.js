@@ -11,8 +11,9 @@ const frequentPlatforms = document.getElementById('frequentPlatforms');
 const frequentIcons = document.getElementById('frequentIcons');
 const categoryTabs = document.getElementById('categoryTabs');
 const platformsGrid = document.getElementById('platformsGrid');
-const tipText = document.getElementById('tipText');
 const toast = document.getElementById('toast');
+const welcomeCard = document.getElementById('welcomeCard');
+const welcomeClose = document.getElementById('welcomeClose');
 
 // ==================== 初始化 ====================
 function init() {
@@ -33,6 +34,9 @@ function init() {
     
     // 初始化 xAI 风格粒子效果
     initParticles();
+    
+    // 检查是否首次访问，显示欢迎卡片
+    checkFirstVisit();
 }
 
 // ==================== xAI 风格粒子效果 ====================
@@ -253,6 +257,11 @@ function bindEvents() {
             switchCategory(tab.dataset.category);
         }
     });
+    
+    // 欢迎卡片事件
+    if (welcomeClose) {
+        welcomeClose.addEventListener('click', hideWelcomeCard);
+    }
 }
 
 // ==================== 搜索框处理 ====================
@@ -278,8 +287,29 @@ function handleKeyPress(e) {
     if (e.key === 'Enter') {
         const query = searchInput.value.trim();
         if (query) {
-            tipText.textContent = '💡 请选择要搜索的平台';
-            tipText.style.color = 'var(--accent-color)';
+            // 自动选择平台进行搜索
+            const targetPlatform = getMostUsedPlatform();
+            if (targetPlatform) {
+                // 模拟点击该平台
+                const platform = getPlatformById(targetPlatform);
+                if (platform) {
+                    // 处理特殊平台（如微信）
+                    if (platform.isSpecial) {
+                        showToast('💬 请在微信App内搜索：' + query, 3000);
+                        saveSearchHistory(query, targetPlatform, platform.name, platform.category);
+                        return;
+                    }
+                    
+                    // 保存搜索历史
+                    saveSearchHistory(query, targetPlatform, platform.name, platform.category);
+                    
+                    // 显示跳转提示
+                    showToast(`🚀 正在打开${platform.name}...`);
+                    
+                    // 打开平台
+                    openPlatform(platform, query, platform.name);
+                }
+            }
         }
     }
 }
@@ -291,8 +321,6 @@ function clearSearchInput() {
     frequentPlatforms.style.display = 'none';
     updatePlatformCards('');
     searchInput.focus();
-    tipText.textContent = '💡 输入关键词后，点击平台图标即可跳转搜索';
-    tipText.style.color = '';
 }
 
 function updatePlatformCards(query) {
@@ -368,9 +396,16 @@ function handlePlatformClick(e) {
     openPlatform(platform, query, platformName);
 }
 
+// ==================== 检测是否在微信环境 ====================
+function isWeChat() {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.indexOf('micromessenger') !== -1;
+}
+
 // ==================== 打开平台（App或网页）====================
 function openPlatform(platform, query, platformName) {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const inWeChat = isWeChat();
     
     // 桌面端直接打开网页
     if (!isMobile || !platform.appScheme) {
@@ -381,7 +416,18 @@ function openPlatform(platform, query, platformName) {
         return;
     }
     
-    // 移动端：尝试打开App
+    // 移动端：判断是否在微信中
+    if (inWeChat) {
+        // 在微信中，iOS无法唤起第三方app，直接打开网页版
+        const webUrl = platform.url.replace('{query}', encodeURIComponent(query));
+        showToast(`💡 微信中将打开网页版`, 2000);
+        setTimeout(() => {
+            window.location.href = webUrl;
+        }, 500);
+        return;
+    }
+    
+    // 移动端非微信环境：尝试打开App
     const appUrl = platform.appScheme.replace('{query}', encodeURIComponent(query));
     const webUrl = platform.url.replace('{query}', encodeURIComponent(query));
     
@@ -547,6 +593,45 @@ function getTopFrequentPlatforms(limit = 5) {
     }
 }
 
+// ==================== 获取最常用的平台ID（用于回车键快捷搜索）====================
+function getMostUsedPlatform() {
+    try {
+        const stats = JSON.parse(localStorage.getItem('platformStats') || '{}');
+        
+        // 如果有使用记录，返回使用次数最多的平台
+        if (Object.keys(stats).length > 0) {
+            const sorted = Object.entries(stats)
+                .map(([platformId, data]) => ({
+                    platformId,
+                    count: data.count,
+                    lastUsed: data.lastUsed
+                }))
+                .sort((a, b) => {
+                    // 按使用次数降序，次数相同按最后使用时间降序
+                    if (b.count !== a.count) {
+                        return b.count - a.count;
+                    }
+                    return b.lastUsed - a.lastUsed;
+                });
+            
+            return sorted[0].platformId;
+        }
+        
+        // 如果没有使用记录，返回精选分类的第一个平台
+        const featuredPlatforms = getPlatformsByCategory('featured');
+        if (featuredPlatforms && featuredPlatforms.length > 0) {
+            return featuredPlatforms[0].id;
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('获取最常用平台失败:', error);
+        // 出错时返回精选第一个平台
+        const featuredPlatforms = getPlatformsByCategory('featured');
+        return featuredPlatforms && featuredPlatforms.length > 0 ? featuredPlatforms[0].id : null;
+    }
+}
+
 // ==================== 渲染常用平台 ====================
 function renderFrequentPlatforms() {
     const platforms = getTopFrequentPlatforms(5);
@@ -592,8 +677,6 @@ function checkUrlParams() {
         currentQuery = query;
         clearBtn.classList.add('show');
         updatePlatformCards(query);
-        tipText.textContent = '💡 请选择要搜索的平台';
-        tipText.style.color = 'var(--accent-color)';
     }
 }
 
@@ -606,6 +689,64 @@ function showToast(message, duration = 2000) {
         toast.classList.remove('show');
     }, duration);
 }
+
+// ==================== 欢迎卡片管理 ====================
+function checkFirstVisit() {
+    try {
+        // 检查是否有 showWelcome URL 参数（从设置页面跳转）
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('showWelcome') === 'true') {
+            showWelcomeCard();
+            // 清除 URL 参数
+            window.history.replaceState({}, '', window.location.pathname);
+            return;
+        }
+        
+        // 检查 localStorage 是否已访问过
+        const hasVisited = localStorage.getItem('hasVisited');
+        if (!hasVisited) {
+            // 首次访问，显示欢迎卡片
+            showWelcomeCard();
+        }
+    } catch (error) {
+        console.error('检查首次访问失败:', error);
+    }
+}
+
+function showWelcomeCard() {
+    if (welcomeCard) {
+        welcomeCard.style.display = 'block';
+        // 触发重排以确保动画播放
+        void welcomeCard.offsetWidth;
+        // 让搜索框获得焦点（可选）
+        setTimeout(() => {
+            searchInput.focus();
+        }, 600);
+    }
+}
+
+function hideWelcomeCard() {
+    if (welcomeCard) {
+        // 添加淡出动画
+        welcomeCard.style.animation = 'welcomeSlideOut 0.4s ease-out forwards';
+        
+        setTimeout(() => {
+            welcomeCard.style.display = 'none';
+            // 重置动画
+            welcomeCard.style.animation = '';
+        }, 400);
+        
+        // 标记用户已访问
+        try {
+            localStorage.setItem('hasVisited', 'true');
+        } catch (error) {
+            console.error('保存访问状态失败:', error);
+        }
+    }
+}
+
+// 导出函数供外部调用（如设置页面）
+window.showWelcomeCard = showWelcomeCard;
 
 // ==================== PWA 支持 ====================
 if ('serviceWorker' in navigator) {

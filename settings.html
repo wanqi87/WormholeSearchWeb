@@ -43,6 +43,19 @@
                 </div>
             </div>
 
+            <!-- 帮助 -->
+            <div class="settings-section">
+                <h2 class="settings-title">❓ 帮助</h2>
+                <div class="settings-buttons">
+                    <button class="settings-btn" id="showGuideBtn">
+                        📖 查看新手引导
+                    </button>
+                    <button class="settings-btn" id="showFeedbackBtn">
+                        💬 使用反馈
+                    </button>
+                </div>
+            </div>
+
             <!-- 数据管理 -->
             <div class="settings-section">
                 <h2 class="settings-title">💾 数据管理</h2>
@@ -66,14 +79,18 @@
                 <div class="about-info">
                     <p><strong>虫洞搜索</strong></p>
                     <p>版本：v2.0.0</p>
-                    <p>一站式搜索聚合工具，支持30+平台快速搜索</p>
+                    <p>一站式搜索聚合工具</p>
                     <p style="margin-top: 1rem; color: var(--text-tertiary); font-size: 0.875rem;">
                         覆盖社交媒体、视频平台、AI工具、购物平台、新闻资讯、工具搜索等多个领域
                     </p>
-                    <div class="about-links" style="margin-top: 1rem;">
-                        <a href="https://github.com" class="about-link" target="_blank">GitHub</a>
-                        <span style="color: var(--text-tertiary);">·</span>
-                        <a href="#" class="about-link" onclick="alert('反馈功能开发中'); return false;">反馈</a>
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);">
+                        <p style="font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary);">典型使用场景</p>
+                        <ul style="margin: 0; padding-left: 1.5rem; color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8;">
+                            <li><strong>选品与比价</strong>：同一关键词在淘宝、京东、拼多多、跨境平台快速对照。</li>
+                            <li><strong>舆情与素材</strong>：社媒平台（小红书、微博、B 站、抖音、即刻、YouTube）一键切换检索。</li>
+                            <li><strong>新闻多源核对</strong>：头条、腾讯新闻、网易新闻与 Google News/Reddit 交叉验证。</li>
+                            <li><strong>学习与研究</strong>：知乎、豆瓣、视频平台形成互补视角，减少信息偏见。</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -94,6 +111,20 @@
 
     <!-- Toast通知 -->
     <div id="toast" class="toast"></div>
+
+    <!-- 反馈二维码模态框 -->
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <h3 class="modal-title">扫码添加微信反馈</h3>
+            <div class="modal-qrcode">
+                <img src="images/wechat-qrcode.jpg" alt="微信二维码">
+            </div>
+            <p class="modal-desc">
+                扫描二维码添加微信，欢迎您的反馈与建议
+            </p>
+        </div>
+    </div>
 
     <!-- 引入配置文件 -->
     <script src="js/config/categories.js"></script>
