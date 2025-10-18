@@ -37,6 +37,9 @@ function init() {
     
     // 检查是否首次访问，显示欢迎卡片
     checkFirstVisit();
+    
+    // 检测微信浏览器环境
+    checkWeChatBrowser();
 }
 
 // ==================== xAI 风格粒子效果 ====================
@@ -418,16 +421,9 @@ function handlePlatformClick(e) {
     openPlatform(platform, query, platformName);
 }
 
-// ==================== 检测是否在微信环境 ====================
-function isWeChat() {
-    const ua = navigator.userAgent.toLowerCase();
-    return ua.indexOf('micromessenger') !== -1;
-}
-
 // ==================== 打开平台（App或网页）====================
 function openPlatform(platform, query, platformName) {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const inWeChat = isWeChat();
     
     // 桌面端直接打开网页
     if (!isMobile || !platform.appScheme) {
@@ -438,18 +434,7 @@ function openPlatform(platform, query, platformName) {
         return;
     }
     
-    // 移动端：判断是否在微信中
-    if (inWeChat) {
-        // 在微信中，iOS无法唤起第三方app，直接打开网页版
-        const webUrl = platform.url.replace('{query}', encodeURIComponent(query));
-        showToast(`💡 微信中将打开网页版`, 2000);
-        setTimeout(() => {
-            window.location.href = webUrl;
-        }, 500);
-        return;
-    }
-    
-    // 移动端非微信环境：尝试打开App
+    // 移动端：尝试打开App
     const appUrl = platform.appScheme.replace('{query}', encodeURIComponent(query));
     const webUrl = platform.url.replace('{query}', encodeURIComponent(query));
     
@@ -457,53 +442,245 @@ function openPlatform(platform, query, platformName) {
     tryOpenApp(appUrl, webUrl, platformName);
 }
 
+// ==================== 对话框组件 ====================
+function showDialog(options) {
+    const { title, message, buttons } = options;
+    
+    // 创建遮罩层
+    const overlay = document.createElement('div');
+    overlay.className = 'dialog-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.2s ease;
+    `;
+    
+    // 创建对话框
+    const dialog = document.createElement('div');
+    dialog.className = 'dialog-box';
+    dialog.style.cssText = `
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 340px;
+        margin: 0 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease;
+    `;
+    
+    // 标题
+    const titleEl = document.createElement('h3');
+    titleEl.textContent = title;
+    titleEl.style.cssText = `
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    `;
+    
+    // 消息
+    const messageEl = document.createElement('p');
+    messageEl.textContent = message;
+    messageEl.style.cssText = `
+        margin: 0 0 24px 0;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    `;
+    
+    // 按钮容器
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.style.cssText = `
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    `;
+    
+    // 创建按钮
+    buttons.forEach((btn, index) => {
+        const button = document.createElement('button');
+        button.textContent = btn.label;
+        button.style.cssText = `
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            ${index === 0 ? `
+                background: var(--primary-color);
+                color: white;
+            ` : `
+                background: var(--search-bg);
+                color: var(--text-primary);
+            `}
+        `;
+        
+        button.onclick = () => {
+            document.body.removeChild(overlay);
+            if (btn.callback) btn.callback();
+        };
+        
+        // 添加悬停效果
+        button.onmouseenter = () => {
+            button.style.transform = 'translateY(-1px)';
+            button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        };
+        button.onmouseleave = () => {
+            button.style.transform = 'translateY(0)';
+            button.style.boxShadow = 'none';
+        };
+        
+        buttonsContainer.appendChild(button);
+    });
+    
+    dialog.appendChild(titleEl);
+    dialog.appendChild(messageEl);
+    dialog.appendChild(buttonsContainer);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+}
+
 // ==================== 尝试唤起App ====================
 function tryOpenApp(appUrl, webUrl, platformName) {
     let appOpened = false;
+    let timeoutId = null;
     
     // 记录开始时间
     const startTime = Date.now();
     
     // 监听页面可见性变化
     const visibilityChangeHandler = () => {
+        console.log('visibilitychange 触发, document.hidden:', document.hidden);
         if (document.hidden) {
             // 页面被隐藏，说明App被打开了
             appOpened = true;
+            clearTimeout(timeoutId);
+            cleanup();
         }
     };
     
     // 监听页面失焦（用户切换到其他应用）
     const blurHandler = () => {
+        console.log('blur 事件触发');
         appOpened = true;
+        clearTimeout(timeoutId);
+        cleanup();
+    };
+    
+    // 监听 pagehide 事件
+    const pagehideHandler = () => {
+        console.log('pagehide 事件触发');
+        appOpened = true;
+        clearTimeout(timeoutId);
+        cleanup();
+    };
+    
+    // 清理事件监听器
+    const cleanup = () => {
+        document.removeEventListener('visibilitychange', visibilityChangeHandler);
+        window.removeEventListener('blur', blurHandler);
+        window.removeEventListener('pagehide', pagehideHandler);
     };
     
     document.addEventListener('visibilitychange', visibilityChangeHandler);
     window.addEventListener('blur', blurHandler);
-    window.addEventListener('pagehide', blurHandler);
+    window.addEventListener('pagehide', pagehideHandler);
     
-    // 优化方案：直接使用window.location，减少弹窗次数
-    try {
-        window.location.href = appUrl;
-    } catch (e) {
-        console.error('打开App失败:', e);
-    }
+    console.log('尝试打开 App:', appUrl);
     
-    // 设置超时检测 - 缩短到600ms提高响应速度
-    const timeout = setTimeout(() => {
-        // 清理事件监听
-        document.removeEventListener('visibilitychange', visibilityChangeHandler);
-        window.removeEventListener('blur', blurHandler);
-        window.removeEventListener('pagehide', blurHandler);
+    // 使用 location.href 直接尝试打开（在超时检测之前）
+    window.location.href = appUrl;
+    
+    // 设置超时检测 - 2500ms 后检查
+    // 如果 App 成功打开，页面会在打开前失焦/隐藏
+    // 如果 App 未安装，页面会在尝试失败后继续
+    timeoutId = setTimeout(() => {
+        cleanup();
         
         // 检查是否打开了App
         const elapsed = Date.now() - startTime;
         
-        // 如果页面没有被隐藏，且时间差小于800ms，说明App可能没安装
-        if (!appOpened && elapsed < 800) {
-            // Fallback到网页版
-            window.location.href = webUrl;
+        console.log('App 唤起检测结果:', {
+            platformName,
+            appOpened,
+            elapsed,
+            appUrl
+        });
+        
+        // 如果页面没有被隐藏或失焦，说明App可能没安装
+        if (!appOpened) {
+            console.log('App 未打开，显示降级对话框');
+            // 处理App未安装的情况
+            handleAppNotInstalled(platformName, webUrl);
+        } else {
+            console.log('App 已成功打开');
         }
-    }, 600);
+    }, 2500);
+}
+
+// ==================== 处理App未安装的情况 ====================
+function handleAppNotInstalled(platformName, webUrl) {
+    const preferenceKey = `appFallback_${platformName}`;
+    const savedPreference = localStorage.getItem(preferenceKey);
+    
+    // 如果用户之前已经做过选择
+    if (savedPreference === 'web') {
+        // 直接打开网页版
+        window.location.href = webUrl;
+        return;
+    } else if (savedPreference === 'skip') {
+        // 用户选择不打开，只显示提示
+        showToast(`⚠️ ${platformName} App 未安装`, 2000);
+        return;
+    }
+    
+    // 首次遇到此情况，显示对话框询问
+    showDialog({
+        title: `${platformName} App 未安装`,
+        message: '检测到您可能未安装此应用，是否打开网页版继续搜索？',
+        buttons: [
+            {
+                label: '✓ 打开网页版（记住选择）',
+                callback: () => {
+                    localStorage.setItem(preferenceKey, 'web');
+                    showToast('已保存偏好，下次将自动打开网页版');
+                    setTimeout(() => {
+                        window.location.href = webUrl;
+                    }, 300);
+                }
+            },
+            {
+                label: '仅此一次打开网页版',
+                callback: () => {
+                    window.location.href = webUrl;
+                }
+            },
+            {
+                label: '不打开（记住选择）',
+                callback: () => {
+                    localStorage.setItem(preferenceKey, 'skip');
+                    showToast('已保存偏好，下次将不再打开网页版');
+                }
+            },
+            {
+                label: '取消',
+                callback: () => {
+                    // 什么都不做
+                }
+            }
+        ]
+    });
 }
 
 // ==================== 搜索历史管理 ====================
@@ -769,6 +946,54 @@ function hideWelcomeCard() {
 
 // 导出函数供外部调用（如设置页面）
 window.showWelcomeCard = showWelcomeCard;
+
+// ==================== 微信浏览器检测与引导 ====================
+function checkWeChatBrowser() {
+    // 检测是否在微信浏览器中
+    const ua = navigator.userAgent.toLowerCase();
+    const isWeChat = ua.indexOf('micromessenger') !== -1;
+    
+    if (isWeChat) {
+        // 检查用户是否已经关闭过提示（24小时内不再显示）
+        const dismissedTime = localStorage.getItem('wechatTipDismissed');
+        const now = Date.now();
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+        
+        if (!dismissedTime || (now - parseInt(dismissedTime)) > ONE_DAY) {
+            showWeChatTip();
+        }
+    }
+}
+
+function showWeChatTip() {
+    const wechatTip = document.getElementById('wechatTip');
+    if (wechatTip) {
+        wechatTip.style.display = 'flex';
+        
+        // 点击遮罩层关闭
+        wechatTip.addEventListener('click', hideWeChatTip);
+    }
+}
+
+function hideWeChatTip() {
+    const wechatTip = document.getElementById('wechatTip');
+    if (wechatTip) {
+        // 添加淡出动画
+        wechatTip.style.animation = 'fadeOut 0.3s ease-out';
+        
+        setTimeout(() => {
+            wechatTip.style.display = 'none';
+            wechatTip.style.animation = '';
+        }, 300);
+        
+        // 记录关闭时间
+        try {
+            localStorage.setItem('wechatTipDismissed', Date.now().toString());
+        } catch (error) {
+            console.error('保存微信提示状态失败:', error);
+        }
+    }
+}
 
 // ==================== PWA 支持 ====================
 if ('serviceWorker' in navigator) {

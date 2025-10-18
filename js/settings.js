@@ -258,6 +258,35 @@ function handleClearData() {
     }
 }
 
+// ==================== 重置 App 降级偏好 ====================
+function resetAppPreferences() {
+    try {
+        // 获取所有以 appFallback_ 开头的 localStorage 键
+        const keys = Object.keys(localStorage).filter(key => key.startsWith('appFallback_'));
+        
+        if (keys.length === 0) {
+            showToast('⚠️ 没有已保存的偏好设置');
+            return;
+        }
+        
+        // 确认重置
+        if (!confirm(`确定要重置所有 App 降级偏好吗？\n\n当前已保存 ${keys.length} 个平台的偏好设置。\n重置后，下次遇到 App 未安装时会重新询问您的选择。`)) {
+            return;
+        }
+        
+        // 删除所有偏好设置
+        keys.forEach(key => localStorage.removeItem(key));
+        
+        showToast(`✅ 已重置 ${keys.length} 个平台的偏好设置`);
+    } catch (error) {
+        console.error('重置偏好失败:', error);
+        showToast('❌ 重置失败');
+    }
+}
+
+// 导出函数供 HTML 调用
+window.resetAppPreferences = resetAppPreferences;
+
 // ==================== 工具函数 ====================
 
 function getSearchHistory() {

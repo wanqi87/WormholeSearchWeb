@@ -68,11 +68,17 @@
                     <button class="settings-btn" id="importDataBtn">
                         📥 导入数据
                     </button>
+                    <button class="settings-btn" id="resetAppPreferencesBtn" onclick="resetAppPreferences()">
+                        🔄 重置 App 偏好
+                    </button>
                     <button class="settings-btn danger" id="clearDataBtn">
                         🗑️ 清除所有数据
                     </button>
                 </div>
                 <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                <p class="settings-hint" style="margin-top: 12px; color: var(--text-tertiary); font-size: 0.875rem;">
+                    💡 重置 App 偏好：清除已记住的"App 未安装时"行为选择
+                </p>
             </div>
 
             <!-- 关于 -->
